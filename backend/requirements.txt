@@ -10,3 +10,8 @@ scipy
 opencv-python
 scikit-learn
 email-validator
+InsightFace
+ONNX Runtime
+JWT
+password hashing
+Joblib
