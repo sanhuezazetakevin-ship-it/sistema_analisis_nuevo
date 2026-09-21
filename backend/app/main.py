@@ -55,3 +55,12 @@ def root():
         "message": "Backend del Sistema Inteligente de Reconocimiento Facial",
         "version": settings.APP_VERSION
     }
+
+
+@app.post("/api/contacto")
+def contacto(data: dict):
+    return {
+        "success": True,
+        "mensaje": "Consulta recibida correctamente",
+        "contacto": data
+    }

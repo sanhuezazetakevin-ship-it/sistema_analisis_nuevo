@@ -1,15 +1,42 @@
 import axios from 'axios';
-import type { Persona, RecognitionResult, RecognitionLog, MLMetrics } from '../types/facial';
-import { INITIAL_PERSONAS, INITIAL_LOGS, MOCK_ML_METRICS } from './mockData';
+import type { Persona, RecognitionResult, RecognitionLog, MLMetrics, UsuarioSystem } from '../types/facial';
+import { INITIAL_PERSONAS, INITIAL_LOGS, MOCK_ML_METRICS, INITIAL_USUARIOS } from './mockData';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+function getDynamicApiBaseUrl(): string {
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  if (typeof window !== 'undefined' && window.location) {
+    const host = window.location.hostname;
+    // Soporte automático para DevTunnels (ej: zdw7gnjp-5173.brs.devtunnels.ms -> zdw7gnjp-8000.brs.devtunnels.ms)
+    if (host.includes('.devtunnels.ms')) {
+      const backendHost = host.replace(/-5173\b/, '-8000');
+      return `${window.location.protocol}//${backendHost}`;
+    }
+    // Soporte para acceso por IP local en red móvil o Wi-Fi
+    if (host !== 'localhost' && host !== '127.0.0.1') {
+      return `${window.location.protocol}//${host}:8000`;
+    }
+  }
+  return 'http://localhost:8000';
+}
 
 const client = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: getDynamicApiBaseUrl(),
   headers: {
     'Content-Type': 'application/json',
   },
   timeout: 10000,
+});
+
+
+// Interceptor para enviar el token JWT si está disponible
+client.interceptors.request.use((config) => {
+  const token = localStorage.getItem('auth_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
 // Claves para persistencia local de demostración
@@ -18,7 +45,18 @@ const STORAGE_KEYS = {
   LOGS: 'facial_recognition_logs',
   METRICS: 'facial_ml_metrics',
   USE_MOCK: 'facial_use_mock_api',
+  USUARIOS: 'facial_usuarios_db',
 };
+
+function getStoredUsuarios(): UsuarioSystem[] {
+  const data = localStorage.getItem(STORAGE_KEYS.USUARIOS);
+  if (!data) {
+    localStorage.setItem(STORAGE_KEYS.USUARIOS, JSON.stringify(INITIAL_USUARIOS));
+    return INITIAL_USUARIOS as UsuarioSystem[];
+  }
+  return JSON.parse(data);
+}
+
 
 // Inicialización de LocalStorage si está vacío
 function getStoredPersonas(): Persona[] {
@@ -207,5 +245,73 @@ export const apiService = {
     const z = 14 * (similitud - 0.72) + factor;
     const prob = 1 / (1 + Math.exp(-z));
     return +Math.min(0.99, Math.max(0.01, prob)).toFixed(2);
-  }
+  },
+
+  // 8. Autenticación con Backend (Login)
+  async loginUser(email: string, password: string): Promise<{ access_token: string; usuario: any }> {
+    if (isMockMode()) {
+      return {
+        access_token: 'mock-jwt-token-12345',
+        usuario: {
+          id: 1,
+          nombre: email.split('@')[0],
+          email,
+          rol: 'usuario',
+          activo: true,
+        },
+      };
+    }
+
+    const params = new URLSearchParams();
+    params.append('username', email);
+    params.append('password', password);
+
+    const res = await client.post('/api/auth/login', params, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
+
+    if (res.data && res.data.access_token) {
+      localStorage.setItem('auth_token', res.data.access_token);
+    }
+    return res.data;
+  },
+
+  // 9. Administración de Usuarios (Permisos Admin)
+  async getUsuariosSystem(): Promise<UsuarioSystem[]> {
+    if (isMockMode()) {
+      return getStoredUsuarios();
+    }
+    try {
+      const res = await client.get<{ success: boolean; usuarios: UsuarioSystem[] }>('/api/admin/usuarios');
+      return res.data.usuarios;
+    } catch {
+      return getStoredUsuarios();
+    }
+  },
+
+  async updateUserRole(usuarioId: number, nuevoRol: string): Promise<any> {
+    if (isMockMode()) {
+      const current = getStoredUsuarios();
+      const updated = current.map(u => u.id === usuarioId ? { ...u, rol: nuevoRol as 'admin' | 'usuario' } : u);
+      localStorage.setItem(STORAGE_KEYS.USUARIOS, JSON.stringify(updated));
+      return { success: true, mensaje: 'Rol actualizado' };
+    }
+    const res = await client.put(`/api/admin/usuarios/${usuarioId}/rol?nuevo_rol=${nuevoRol}`);
+    return res.data;
+  },
+
+  async updateUserStatus(usuarioId: number, activo: boolean): Promise<any> {
+    if (isMockMode()) {
+      const current = getStoredUsuarios();
+      const updated = current.map(u => u.id === usuarioId ? { ...u, activo } : u);
+      localStorage.setItem(STORAGE_KEYS.USUARIOS, JSON.stringify(updated));
+      return { success: true, mensaje: 'Estado actualizado' };
+    }
+    const res = await client.put(`/api/admin/usuarios/${usuarioId}/estado?activo=${activo}`);
+    return res.data;
+  },
 };
+
+

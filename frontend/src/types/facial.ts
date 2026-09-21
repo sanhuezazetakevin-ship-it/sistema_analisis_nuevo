@@ -72,3 +72,13 @@ export interface CalibrationPoint {
   umbral: number;
   decision: string;
 }
+
+export interface UsuarioSystem {
+  id: number;
+  nombre: string;
+  email: string;
+  rol: 'admin' | 'usuario';
+  activo: boolean;
+  created_at?: string;
+}
+

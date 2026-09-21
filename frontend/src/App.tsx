@@ -5,11 +5,41 @@ import { RegistroFacial } from './pages/RegistroFacial';
 import { Reconocimiento } from './pages/Reconocimiento';
 import { Probabilidades } from './pages/Probabilidades';
 import { Historial } from './pages/Historial';
-import { isMockMode } from './services/api';
+import { AdminUsuarios } from './pages/AdminUsuarios';
+import { Landing } from './pages/Landing';
+import { Login } from './pages/Login';
+import { isMockMode, setMockMode } from './services/api';
+
+export type AppScreen = 'landing' | 'login' | 'app';
 
 export function App() {
+  const [screen, setScreen] = useState<AppScreen>('landing');
   const [currentTab, setCurrentTab] = useState<NavTab>('dashboard');
   const [mockEnabled, setMockEnabled] = useState<boolean>(isMockMode());
+
+  const navigate = (nextScreen: AppScreen) => {
+    setScreen(nextScreen);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDemoAccess = () => {
+    setMockMode(true);
+    setMockEnabled(true);
+    navigate('app');
+  };
+
+  if (screen === 'landing') {
+    return <Landing onOpenApp={() => navigate('login')} />;
+  }
+
+  if (screen === 'login') {
+    return (
+      <Login
+        onHome={() => navigate('landing')}
+        onDemo={handleDemoAccess}
+      />
+    );
+  }
 
   const renderActivePage = () => {
     switch (currentTab) {
@@ -23,6 +53,8 @@ export function App() {
         return <Probabilidades />;
       case 'historial':
         return <Historial />;
+      case 'admin':
+        return <AdminUsuarios />;
       default:
         return <Dashboard onNavigate={setCurrentTab} />;
     }
@@ -36,6 +68,7 @@ export function App() {
         onSelectTab={setCurrentTab}
         mockEnabled={mockEnabled}
         onToggleMock={setMockEnabled}
+        onNavigateLanding={() => navigate('landing')}
       />
 
       {/* Contenedor Principal de Vistas */}
@@ -47,7 +80,7 @@ export function App() {
       <footer className="w-full border-t border-slate-900 bg-slate-950/80 py-6 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <span>
-            Sistema Inteligente de Reconocimiento Facial y Análisis de Probabilidades
+            Sistema Inteligente de Reconocimiento Facial y Análisis de Probabilidades (BiometricAI)
           </span>
           <span className="font-mono text-[11px] text-slate-400">
             Stack: React 19 + TypeScript + Vite + Tailwind CSS | Deep Learning & Scikit-Learn

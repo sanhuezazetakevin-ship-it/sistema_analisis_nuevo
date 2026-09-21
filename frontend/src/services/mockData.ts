@@ -146,3 +146,11 @@ export const CALIBRATION_DATA: CalibrationPoint[] = [
   { similitud: 0.90, probabilidad: 0.96, umbral: 0.75, decision: "Aceptado" },
   { similitud: 0.95, probabilidad: 0.99, umbral: 0.75, decision: "Aceptado" }
 ];
+
+export const INITIAL_USUARIOS = [
+  { id: 1, nombre: "Kevin Sanhueza", email: "kevin@example.com", rol: "admin", activo: true, created_at: "2026-03-01T08:00:00Z" },
+  { id: 2, nombre: "Ana Martínez", email: "ana.martinez@biometricai.lab", rol: "admin", activo: true, created_at: "2026-03-02T09:30:00Z" },
+  { id: 3, nombre: "Luis Ramírez", email: "luis.ramirez@biometricai.lab", rol: "usuario", activo: true, created_at: "2026-03-05T11:15:00Z" },
+  { id: 4, nombre: "Sofía Castro", email: "sofia.castro@biometricai.lab", rol: "usuario", activo: false, created_at: "2026-03-10T14:20:00Z" }
+];
+

@@ -1,0 +1,147 @@
+/* Login.css - BiometricAI Split-Screen Login Styles */
+
+.login-container {
+  min-height: 100vh;
+  width: 100%;
+  background-color: #f9faf5;
+  color: #172b2a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+}
+
+/* Split-Screen Grid Layout */
+.login-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Columna Izquierda: Story / Identidad */
+.login-story-col {
+  background-color: #172b2a;
+  color: #f9faf5;
+  padding: 3.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Gráfico animado login-art */
+.login-art {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  height: 320px;
+  margin: 2rem auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, rgba(115, 148, 84, 0.25) 0%, rgba(23, 43, 42, 0.6) 60%, transparent 80%);
+}
+
+.login-art-orbit {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px dashed rgba(163, 196, 131, 0.4);
+  animation: loginRotate 18s linear infinite;
+}
+
+.login-art-orbit-1 {
+  width: 280px;
+  height: 280px;
+}
+
+.login-art-orbit-2 {
+  width: 190px;
+  height: 190px;
+  border-style: solid;
+  border-color: rgba(115, 148, 84, 0.3);
+  animation-duration: 12s;
+  animation-direction: reverse;
+}
+
+@keyframes loginRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.login-scanner-line {
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent 0%, #a3c483 50%, transparent 100%);
+  box-shadow: 0 0 12px #739454;
+  animation: loginScan 3s ease-in-out infinite alternate;
+}
+
+@keyframes loginScan {
+  0% {
+    top: 20%;
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    top: 80%;
+    opacity: 0.2;
+  }
+}
+
+/* Columna Derecha: Formulario & Panel */
+.login-form-col {
+  background-color: #f9faf5;
+  padding: 3.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+}
+
+/* Focus Visible Resaltado para Accesibilidad */
+.login-container a:focus-visible,
+.login-container button:focus-visible,
+.login-container input:focus-visible {
+  outline: 3px solid #739454 !important;
+  outline-offset: 2px !important;
+}
+
+/* Ultra Wide Centering (min-width: 1500px) */
+@media (min-width: 1500px) {
+  .login-split {
+    max-width: 1600px;
+    min-height: 85vh;
+    margin: auto;
+    border-radius: 2rem;
+    overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(23, 43, 42, 0.1);
+  }
+  .login-container {
+    padding: 3rem;
+  }
+}
+
+/* Mobile Responsiveness (max-width: 720px) */
+@media (max-width: 720px) {
+  .login-split {
+    grid-template-columns: 1fr;
+  }
+  .login-story-col {
+    display: none !important;
+  }
+  .login-form-col {
+    padding: 2rem 1.5rem;
+  }
+}

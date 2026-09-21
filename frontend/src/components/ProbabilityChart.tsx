@@ -51,8 +51,8 @@ export const ProbabilityChart: React.FC<ProbabilityChartProps> = ({
         )}
       </div>
 
-      <div className="w-full h-64">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="w-full min-h-[260px] h-[260px]">
+        <ResponsiveContainer width="100%" height={260} minHeight={240}>
           <LineChart
             data={CALIBRATION_DATA}
             margin={{ top: 10, right: 20, left: -10, bottom: 5 }}
@@ -63,14 +63,14 @@ export const ProbabilityChart: React.FC<ProbabilityChartProps> = ({
               stroke="#94a3b8"
               fontSize={11}
               domain={[0.3, 1]}
-              tickFormatter={(v) => v.toFixed(2)}
+              tickFormatter={(v) => (typeof v === 'number' ? v.toFixed(2) : String(v))}
               label={{ value: 'Similitud Matemática (Coseno)', position: 'insideBottom', offset: -4, fill: '#64748b', fontSize: 10 }}
             />
             <YAxis
               stroke="#94a3b8"
               fontSize={11}
               domain={[0, 1]}
-              tickFormatter={(v) => `${(v * 100).toFixed(0)}%`}
+              tickFormatter={(v) => (typeof v === 'number' ? `${(v * 100).toFixed(0)}%` : String(v))}
               label={{ value: 'Probabilidad ML', angle: -90, position: 'insideLeft', fill: '#64748b', fontSize: 10 }}
             />
             <Tooltip
