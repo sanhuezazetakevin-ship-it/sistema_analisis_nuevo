@@ -27,39 +27,71 @@ export const RegistroFacial: React.FC = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!nombre.trim() || !email.trim()) {
-      setErrorMessage('Por favor completa todos los campos de texto requeridos.');
-      return;
-    }
-    if (!capturedImage) {
-      setErrorMessage('Es indispensable capturar una fotografía facial para generar el embedding.');
-      return;
-    }
+  e.preventDefault();
 
-    setIsSubmitting(true);
-    setErrorMessage(null);
-    setSuccessMessage(null);
+  if (!nombre.trim() || !email.trim()) {
+    setErrorMessage(
+      'Por favor completa todos los campos de texto requeridos.'
+    );
+    return;
+  }
 
-    try {
-      const newPersona = await apiService.createPersona({
-        nombre: nombre.trim(),
-        email: email.trim(),
-        foto_base64: capturedImage,
-      });
+  if (!capturedImage) {
+    setErrorMessage(
+      'Es indispensable capturar una fotografía facial para generar el embedding.'
+    );
+    return;
+  }
 
-      setSuccessMessage(`¡Persona "${newPersona.nombre}" registrada correctamente con embedding biométrico!`);
-      setNombre('');
-      setEmail('');
-      setCapturedImage(null);
-      await loadPersonas();
-    } catch {
-      setErrorMessage('Error al registrar la persona en el sistema.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  setIsSubmitting(true);
+  setErrorMessage(null);
+  setSuccessMessage(null);
 
+  try {
+    // 1. Crear la persona
+    const newPersona = await apiService.createPersona({
+      nombre: nombre.trim(),
+      email: email.trim(),
+    });
+
+    // 2. Registrar el rostro y generar el embedding
+    const rostro = await apiService.registrarRostro(
+      newPersona.id,
+      capturedImage
+    );
+
+    setSuccessMessage(
+      `¡Persona "${newPersona.nombre}" registrada correctamente! ` +
+      `Embedding generado (${rostro.dimension} dimensiones).`
+    );
+
+    // Limpiar formulario
+    setNombre('');
+    setEmail('');
+    setCapturedImage(null);
+
+    // Actualizar lista
+    await loadPersonas();
+
+  } catch (error: any) {
+
+    console.error(
+      'Error durante el registro facial:',
+      error
+    );
+
+    // Si la persona se creó pero falló el rostro,
+    // mostramos el error real del backend.
+    const detail =
+      error?.response?.data?.detail ||
+      'Error al registrar la persona o generar el embedding.';
+
+    setErrorMessage(detail);
+
+  } finally {
+    setIsSubmitting(false);
+  }
+}
   return (
     <div className="space-y-8 animate-fadeIn">
       <div>
