@@ -22,13 +22,3 @@ class MLTrainingRecordResponse(BaseModel):
         "from_attributes": True
     }
 
-class ProbabilityPredictionRequest(BaseModel):
-    similitud: float
-    calidad_imagen: float | None = None
-    iluminacion: float | None = None
-
-
-class ProbabilityPredictionResponse(BaseModel):
-    probabilidad: float
-    similitud: float
-    distancia: float

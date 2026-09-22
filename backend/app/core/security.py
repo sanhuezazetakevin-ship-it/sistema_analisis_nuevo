@@ -11,7 +11,7 @@ from app.models.usuario_model import Usuario
 
 
 # Configuración JWT
-SECRET_KEY = "kevinjonas10"
+SECRET_KEY = settings.JWT_SECRET_KEY
 ALGORITHM = settings.JWT_ALGORITHM
 ACCESS_TOKEN_EXPIRE_MINUTES = (
     settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES
@@ -98,16 +98,20 @@ def get_current_user(
     """
     Obtiene el usuario autenticado a partir del JWT.
     """
-
     payload = verify_token(token)
 
     user_id = payload.get("sub")
 
+    if not isinstance(user_id, str) or not user_id.isdigit():
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token inválido",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+
     usuario = (
         db.query(Usuario)
-        .filter(
-            Usuario.id == int(user_id)
-        )
+        .filter(Usuario.id == int(user_id))
         .first()
     )
 
@@ -115,9 +119,7 @@ def get_current_user(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Usuario no encontrado",
-            headers={
-                "WWW-Authenticate": "Bearer"
-            }
+            headers={"WWW-Authenticate": "Bearer"}
         )
 
     if not usuario.activo:
@@ -127,8 +129,7 @@ def get_current_user(
         )
 
     return usuario
-
-
+    
 def require_role(
     *roles: str
 ):

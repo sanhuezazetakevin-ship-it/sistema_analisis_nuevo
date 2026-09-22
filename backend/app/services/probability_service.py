@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+
 from sklearn.linear_model import LogisticRegression
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.pipeline import make_pipeline
@@ -10,15 +11,19 @@ from sklearn.metrics import (
     f1_score,
     confusion_matrix
 )
+
 import os
 import joblib
+
 from app.models.ml_training_model import MLTrainingRecord
+
 
 MODEL_PATH = os.path.join(
     os.path.dirname(os.path.dirname(__file__)),
     "ml_models",
     "probability_model.joblib"
 )
+
 
 class ProbabilityService:
 
@@ -64,6 +69,15 @@ class ProbabilityService:
                 "para entrenar el modelo."
             )
 
+        positivos = y.count(1)
+        negativos = y.count(0)
+
+        if positivos < 3 or negativos < 3:
+            raise ValueError(
+                "Se necesitan al menos 3 registros positivos "
+                "y 3 registros negativos para entrenar el modelo."
+            )
+
         base_model = make_pipeline(
             StandardScaler(),
             LogisticRegression(
@@ -78,6 +92,7 @@ class ProbabilityService:
         )
 
         self.model.fit(X, y)
+
         self.save_model()
         self.trained = True
 
@@ -131,9 +146,12 @@ class ProbabilityService:
 
         return {
             "registros": len(y),
+            "total_muestras": len(y),
+
             "accuracy": float(
                 accuracy_score(y, predictions)
             ),
+
             "precision": float(
                 precision_score(
                     y,
@@ -141,6 +159,7 @@ class ProbabilityService:
                     zero_division=0
                 )
             ),
+
             "recall": float(
                 recall_score(
                     y,
@@ -148,6 +167,7 @@ class ProbabilityService:
                     zero_division=0
                 )
             ),
+
             "f1": float(
                 f1_score(
                     y,
@@ -155,6 +175,18 @@ class ProbabilityService:
                     zero_division=0
                 )
             ),
+
+            "f1_score": float(
+                f1_score(
+                    y,
+                    predictions,
+                    zero_division=0
+                )
+            ),
+
+            "falsos_positivos": int(fp),
+            "falsos_negativos": int(fn),
+
             "matriz_confusion": {
                 "verdaderos_negativos": int(tn),
                 "falsos_positivos": int(fp),
@@ -168,9 +200,11 @@ class ProbabilityService:
             raise ValueError(
                 "No existe un modelo entrenado."
             )
-        
-        # Asegurar que el directorio exista antes de guardar
-        os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
+
+        os.makedirs(
+            os.path.dirname(MODEL_PATH),
+            exist_ok=True
+        )
 
         joblib.dump(
             self.model,
@@ -188,5 +222,6 @@ class ProbabilityService:
         self.trained = True
 
         return True
+
 
 probability_service = ProbabilityService()

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+
 from sqlalchemy.orm import Session
 
 from app.core.security import require_role
@@ -35,6 +36,7 @@ def cambiar_rol(
     ),
     db: Session = Depends(get_db)
 ):
+
     roles_permitidos = ["usuario", "admin"]
 
     if nuevo_rol not in roles_permitidos:
@@ -55,8 +57,13 @@ def cambiar_rol(
             detail="Usuario no encontrado"
         )
 
-    usuario.rol = nuevo_rol
+    if usuario.id == current_user.id and nuevo_rol != "admin":
+        raise HTTPException(
+            status_code=400,
+            detail="No puede quitarse a sí mismo el rol de administrador."
+        )
 
+    usuario.rol = nuevo_rol
     db.commit()
     db.refresh(usuario)
 
@@ -82,6 +89,7 @@ def cambiar_estado_usuario(
     ),
     db: Session = Depends(get_db)
 ):
+
     usuario = (
         db.query(Usuario)
         .filter(Usuario.id == usuario_id)
@@ -94,8 +102,13 @@ def cambiar_estado_usuario(
             detail="Usuario no encontrado"
         )
 
-    usuario.activo = activo
+    if usuario.id == current_user.id and not activo:
+        raise HTTPException(
+            status_code=400,
+            detail="No puede desactivarse a sí mismo."
+        )
 
+    usuario.activo = activo
     db.commit()
     db.refresh(usuario)
 
@@ -114,6 +127,8 @@ def cambiar_estado_usuario(
             "activo": usuario.activo
         }
     }
+
+
 @router.get("/usuarios")
 def listar_usuarios(
     current_user: Usuario = Depends(
@@ -121,6 +136,7 @@ def listar_usuarios(
     ),
     db: Session = Depends(get_db)
 ):
+
     usuarios = (
         db.query(Usuario)
         .order_by(Usuario.id.asc())
@@ -142,6 +158,8 @@ def listar_usuarios(
             for usuario in usuarios
         ]
     }
+
+
 @router.get("/usuarios/{usuario_id}")
 def obtener_usuario(
     usuario_id: int,
@@ -150,6 +168,7 @@ def obtener_usuario(
     ),
     db: Session = Depends(get_db)
 ):
+
     usuario = (
         db.query(Usuario)
         .filter(Usuario.id == usuario_id)

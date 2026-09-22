@@ -19,6 +19,13 @@ interface NavbarProps {
   mockEnabled: boolean;
   onToggleMock: (enabled: boolean) => void;
   onNavigateLanding?: () => void;
+  currentUser: {
+    id: number;
+    nombre: string;
+    email: string;
+    rol: 'admin' | 'usuario';
+    activo: boolean;
+  } | null;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -27,15 +34,46 @@ export const Navbar: React.FC<NavbarProps> = ({
   mockEnabled,
   onToggleMock,
   onNavigateLanding,
+  currentUser,
 }) => {
   const tabs = [
-    { id: 'dashboard' as NavTab, label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'registro' as NavTab, label: 'Registro Facial', icon: UserPlus },
-    { id: 'reconocimiento' as NavTab, label: 'Reconocimiento', icon: ScanFace },
-    { id: 'probabilidades' as NavTab, label: 'Probabilidades ML', icon: TrendingUp },
-    { id: 'historial' as NavTab, label: 'Historial', icon: History },
-    { id: 'admin' as NavTab, label: 'Gestión Admin', icon: ShieldCheck },
+    {
+      id: 'dashboard' as NavTab,
+      label: 'Dashboard',
+      icon: LayoutDashboard,
+    },
+    {
+      id: 'registro' as NavTab,
+      label: 'Registro Facial',
+      icon: UserPlus,
+    },
+    {
+      id: 'reconocimiento' as NavTab,
+      label: 'Reconocimiento',
+      icon: ScanFace,
+    },
+    {
+      id: 'probabilidades' as NavTab,
+      label: 'Probabilidades ML',
+      icon: TrendingUp,
+    },
+    {
+      id: 'historial' as NavTab,
+      label: 'Historial',
+      icon: History,
+      adminOnly: true,
+    },
+    {
+      id: 'admin' as NavTab,
+      label: 'Gestión Admin',
+      icon: ShieldCheck,
+      adminOnly: true,
+    },
   ];
+
+  const visibleTabs = tabs.filter(
+    (tab) => !tab.adminOnly || currentUser?.rol === 'admin'
+  );
 
   return (
     <header className="w-full bg-slate-900/90 backdrop-blur border-b border-slate-800 sticky top-0 z-50">
@@ -61,7 +99,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Navegación por Pestañas */}
           <nav className="hidden md:flex items-center gap-1">
-            {tabs.map((tab) => {
+            {visibleTabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = currentTab === tab.id;
               const isAdminTab = tab.id === 'admin';
@@ -69,15 +107,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   key={tab.id}
                   onClick={() => onSelectTab(tab.id)}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                    isActive
-                      ? isAdminTab
-                        ? 'bg-purple-950 text-purple-300 shadow-sm border border-purple-800'
-                        : 'bg-slate-800 text-cyan-400 shadow-sm border border-slate-700'
-                      : isAdminTab
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${isActive
+                    ? isAdminTab
+                      ? 'bg-purple-950 text-purple-300 shadow-sm border border-purple-800'
+                      : 'bg-slate-800 text-cyan-400 shadow-sm border border-slate-700'
+                    : isAdminTab
                       ? 'text-purple-400 hover:text-purple-200 hover:bg-purple-950/40'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-                  }`}
+                    }`}
                 >
                   <Icon className={`w-4 h-4 ${isActive ? (isAdminTab ? 'text-purple-300' : 'text-cyan-400') : (isAdminTab ? 'text-purple-400' : 'text-slate-400')}`} />
                   {tab.label}
@@ -95,11 +132,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onToggleMock(next);
               }}
               title="Alternar entre Simulación Demo y API Real"
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition cursor-pointer ${
-                mockEnabled
-                  ? 'bg-emerald-950/60 text-emerald-300 border-emerald-800/80 hover:bg-emerald-900/60'
-                  : 'bg-cyan-950/60 text-cyan-300 border-cyan-800/80 hover:bg-cyan-900/60'
-              }`}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition cursor-pointer ${mockEnabled
+                ? 'bg-emerald-950/60 text-emerald-300 border-emerald-800/80 hover:bg-emerald-900/60'
+                : 'bg-cyan-950/60 text-cyan-300 border-cyan-800/80 hover:bg-cyan-900/60'
+                }`}
             >
               <Cpu className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Modo:</span>
@@ -121,18 +157,17 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Barra de pestañas móvil */}
         <div className="flex md:hidden overflow-x-auto py-2 gap-1 border-t border-slate-800/60">
-          {tabs.map((tab) => {
+          {visibleTabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = currentTab === tab.id;
             return (
               <button
                 key={tab.id}
                 onClick={() => onSelectTab(tab.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs whitespace-nowrap font-medium transition-all cursor-pointer ${
-                  isActive
-                    ? 'bg-slate-800 text-cyan-400 border border-slate-700'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs whitespace-nowrap font-medium transition-all cursor-pointer ${isActive
+                  ? 'bg-slate-800 text-cyan-400 border border-slate-700'
+                  : 'text-slate-400 hover:text-slate-200'
+                  }`}
               >
                 <Icon className="w-3.5 h-3.5" />
                 {tab.label}

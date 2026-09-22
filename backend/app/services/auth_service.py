@@ -1,4 +1,6 @@
+
 from sqlalchemy.orm import Session
+
 from passlib.context import CryptContext
 
 from app.models.usuario_model import Usuario
@@ -32,6 +34,8 @@ class AuthService:
         password: str,
         db: Session
     ):
+        email = email.strip().lower()
+
         # Verificar si ya existe
         usuario_existente = (
             db.query(Usuario)
@@ -65,6 +69,8 @@ class AuthService:
         password: str,
         db: Session
     ):
+        email = email.strip().lower()
+
         usuario = (
             db.query(Usuario)
             .filter(Usuario.email == email)

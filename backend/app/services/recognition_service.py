@@ -18,7 +18,8 @@ class RecognitionService:
     def recognize(
         self,
         image_bytes: bytes,
-        db: Session
+        db: Session,
+        threshold: float = DEFAULT_THRESHOLD
     ):
 
         # 1. Obtener embedding de la imagen recibida
@@ -76,7 +77,7 @@ class RecognitionService:
 
         # 5. Aplicar umbral
         coincide = (
-            best_similarity >= DEFAULT_THRESHOLD
+            best_similarity >= threshold
         )
 
         persona_id = (
@@ -109,7 +110,7 @@ class RecognitionService:
             persona_id=persona_id,
             similitud=best_similarity,
             distancia=distance,
-            umbral=DEFAULT_THRESHOLD,
+            umbral=threshold,
             coincide=coincide,
             probabilidad_calibrada=probability
         )
@@ -124,7 +125,7 @@ class RecognitionService:
             "nombre": nombre,
             "similitud": best_similarity,
             "distancia": distance,
-            "umbral": DEFAULT_THRESHOLD,
+            "umbral": threshold,
             "coincide": coincide,
             "probabilidad_calibrada": probability
         }

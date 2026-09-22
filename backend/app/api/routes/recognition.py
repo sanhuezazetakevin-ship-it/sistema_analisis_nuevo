@@ -1,13 +1,24 @@
-from fastapi import APIRouter, Depends, File, UploadFile, HTTPException
+from fastapi import APIRouter, Depends, File, UploadFile, HTTPException, Form
+
 from sqlalchemy.orm import Session
 
 from app.database.connection import get_db
-from app.services.recognition_service import recognition_service
+
+from app.services.recognition_service import (
+    recognition_service,
+    DEFAULT_THRESHOLD
+)
+
 from app.schemas.recognition_schema import (
     RecognitionResponse,
     RecognitionHistoryResponse
 )
+
 from app.models.recognition_model import RecognitionLog
+
+from app.core.security import get_current_user, require_role
+
+from app.models.usuario_model import Usuario
 
 
 router = APIRouter(
@@ -22,9 +33,17 @@ router = APIRouter(
 )
 async def reconocer_rostro(
     file: UploadFile = File(...),
+    threshold: float = Form(DEFAULT_THRESHOLD),
+    current_user: Usuario = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     try:
+
+        if threshold < 0.50 or threshold > 0.95:
+            raise HTTPException(
+                status_code=400,
+                detail="El umbral debe estar entre 0.50 y 0.95."
+            )
 
         # Leer los bytes de la imagen
         image_bytes = await file.read()
@@ -38,13 +57,13 @@ async def reconocer_rostro(
         # Ejecutar reconocimiento facial
         resultado = recognition_service.recognize(
             image_bytes=image_bytes,
-            db=db
+            db=db,
+            threshold=threshold
         )
 
         return resultado
 
     except ValueError as e:
-
         raise HTTPException(
             status_code=400,
             detail=str(e)
@@ -54,7 +73,6 @@ async def reconocer_rostro(
         raise
 
     except Exception as e:
-
         raise HTTPException(
             status_code=500,
             detail=f"Error durante el reconocimiento facial: {str(e)}"
@@ -66,6 +84,7 @@ async def reconocer_rostro(
     response_model=list[RecognitionHistoryResponse]
 )
 def historial_reconocimiento(
+    current_user: Usuario = Depends(require_role("admin")),
     db: Session = Depends(get_db)
 ):
 

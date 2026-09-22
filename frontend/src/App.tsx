@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Navbar, type NavTab } from './components/Navbar';
 import { Dashboard } from './pages/Dashboard';
 import { RegistroFacial } from './pages/RegistroFacial';
@@ -10,13 +10,50 @@ import { Landing } from './pages/Landing';
 import { Login } from './pages/Login';
 import { isMockMode, setMockMode } from './services/api';
 
+
 export type AppScreen = 'landing' | 'login' | 'app';
+
+export interface AuthUser {
+  id: number;
+  nombre: string;
+  email: string;
+  rol: 'admin' | 'usuario';
+  activo: boolean;
+}
 
 export function App() {
   const [screen, setScreen] = useState<AppScreen>('landing');
   const [currentTab, setCurrentTab] = useState<NavTab>('dashboard');
   const [mockEnabled, setMockEnabled] = useState<boolean>(isMockMode());
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
+  useEffect(() => {
+    const savedUser = localStorage.getItem('auth_user');
 
+    if (savedUser) {
+      try {
+        const user = JSON.parse(savedUser);
+
+        setCurrentUser(user);
+        setScreen('app');
+        setMockEnabled(false);
+      } catch {
+        localStorage.removeItem('auth_user');
+      }
+    }
+  }, []);
+  const handleLoginSuccess = (user: AuthUser) => {
+    localStorage.setItem(
+      'auth_user',
+      JSON.stringify(user)
+    );
+
+    setCurrentUser(user);
+    setMockMode(false);
+    setMockEnabled(false);
+    setCurrentTab('dashboard');
+
+    navigate('app');
+  };
   const navigate = (nextScreen: AppScreen) => {
     setScreen(nextScreen);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -37,7 +74,7 @@ export function App() {
       <Login
         onHome={() => navigate('landing')}
         onDemo={handleDemoAccess}
-      />
+        onSuccess={handleLoginSuccess} />
     );
   }
 
@@ -52,11 +89,14 @@ export function App() {
       case 'probabilidades':
         return <Probabilidades />;
       case 'historial':
-        return <Historial />;
+        return currentUser?.rol === 'admin'
+          ? <Historial />
+          : <Dashboard onNavigate={setCurrentTab} />;
+
       case 'admin':
-        return <AdminUsuarios />;
-      default:
-        return <Dashboard onNavigate={setCurrentTab} />;
+        return currentUser?.rol === 'admin'
+          ? <AdminUsuarios />
+          : <Dashboard onNavigate={setCurrentTab} />;
     }
   };
 
@@ -69,6 +109,7 @@ export function App() {
         mockEnabled={mockEnabled}
         onToggleMock={setMockEnabled}
         onNavigateLanding={() => navigate('landing')}
+        currentUser={currentUser}
       />
 
       {/* Contenedor Principal de Vistas */}

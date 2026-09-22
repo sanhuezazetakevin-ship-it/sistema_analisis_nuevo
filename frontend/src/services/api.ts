@@ -309,10 +309,10 @@ export const apiService = {
         id:
           current.length > 0
             ? Math.max(
-                ...current.map(
-                  p => p.id
-                )
-              ) + 1
+              ...current.map(
+                p => p.id
+              )
+            ) + 1
             : 1,
 
         nombre:
@@ -395,11 +395,11 @@ export const apiService = {
       const matchedPersona =
         shouldMatch
           ? personas[
-              Math.floor(
-                Math.random() *
-                personas.length
-              )
-            ]
+          Math.floor(
+            Math.random() *
+            personas.length
+          )
+          ]
           : null;
 
 
@@ -407,14 +407,14 @@ export const apiService = {
         matchedPersona
 
           ? +(
-              0.76 +
-              Math.random() * 0.22
-            ).toFixed(2)
+            0.76 +
+            Math.random() * 0.22
+          ).toFixed(2)
 
           : +(
-              0.42 +
-              Math.random() * 0.25
-            ).toFixed(2);
+            0.42 +
+            Math.random() * 0.25
+          ).toFixed(2);
 
 
       const distancia =
@@ -457,13 +457,13 @@ export const apiService = {
 
         persona_id:
           coincide &&
-          matchedPersona
+            matchedPersona
             ? matchedPersona.id
             : null,
 
         nombre:
           coincide &&
-          matchedPersona
+            matchedPersona
             ? matchedPersona.nombre
             : 'No identificado',
 
@@ -634,6 +634,11 @@ export const apiService = {
       file
     );
 
+    formData.append(
+      'threshold',
+      String(umbral)
+    );
+
 
     // Enviar imagen
     // al backend
@@ -736,7 +741,7 @@ export const apiService = {
           modelo_tipo:
             modeloTipo as
             MLMetrics[
-              'modelo_tipo'
+            'modelo_tipo'
             ],
 
           accuracy:
@@ -934,6 +939,86 @@ export const apiService = {
     return res.data;
   },
 
+  // ==========================================================
+  // 8.1 REGISTRO DE USUARIO
+  // ==========================================================
+
+  async registerUser(
+    nombre: string,
+    email: string,
+    password: string
+  ): Promise<{
+    id: number;
+    nombre: string;
+    email: string;
+    rol: string;
+    activo: boolean;
+  }> {
+
+    if (isMockMode()) {
+
+      await new Promise(
+        r => setTimeout(r, 500)
+      );
+
+      const current =
+        getStoredUsuarios();
+
+      const yaExiste =
+        current.some(
+          u => u.email.toLowerCase() === email.toLowerCase()
+        );
+
+      if (yaExiste) {
+        throw new Error(
+          'Ya existe un usuario registrado con ese correo.'
+        );
+      }
+
+      const nuevoUsuario: UsuarioSystem = {
+        id:
+          current.length > 0
+            ? Math.max(...current.map(u => u.id)) + 1
+            : 1,
+        nombre,
+        email,
+        rol: 'usuario',
+        activo: true,
+      } as UsuarioSystem;
+
+      localStorage.setItem(
+        STORAGE_KEYS.USUARIOS,
+        JSON.stringify([nuevoUsuario, ...current])
+      );
+
+      return nuevoUsuario;
+    }
+
+    /*
+      FastAPI espera:
+
+      POST /api/auth/registro
+
+      application/json
+
+      {
+        nombre, email, password
+      }
+    */
+
+    const res =
+      await client.post(
+        '/api/auth/registro',
+        {
+          nombre,
+          email,
+          password,
+        }
+      );
+
+    return res.data;
+  },
+
 
   // ==========================================================
   // 9. LISTAR USUARIOS DEL SISTEMA
@@ -988,12 +1073,12 @@ export const apiService = {
           u =>
             u.id === usuarioId
               ? {
-                  ...u,
-                  rol:
-                    nuevoRol as
-                    'admin' |
-                    'usuario'
-                }
+                ...u,
+                rol:
+                  nuevoRol as
+                  'admin' |
+                  'usuario'
+              }
               : u
         );
 
@@ -1047,9 +1132,9 @@ export const apiService = {
           u =>
             u.id === usuarioId
               ? {
-                  ...u,
-                  activo
-                }
+                ...u,
+                activo
+              }
               : u
         );
 
@@ -1083,50 +1168,51 @@ export const apiService = {
   },
 
   async registrarRostro(
-  personaId: number,
-  imageBase64: string
-): Promise<{
-  message: string;
-  persona_id: number;
-  embedding_id: number;
-  modelo: string;
-  dimension: number;
-}> {
-  // Convertir data:image/jpeg;base64,... a Blob
-  const response = await fetch(imageBase64);
-  const blob = await response.blob();
+    personaId: number,
+    imageBase64: string
+  ): Promise<{
+    message: string;
+    persona_id: number;
+    embedding_id: number;
+    modelo: string;
+    dimension: number;
+  }> {
+    // Convertir data:image/jpeg;base64,... a Blob
+    const response = await fetch(imageBase64);
+    const blob = await response.blob();
 
-  const formData = new FormData();
+    const formData = new FormData();
 
-  formData.append(
-    'file',
-    blob,
-    'rostro.jpg'
-  );
+    formData.append(
+      'file',
+      blob,
+      'rostro.jpg'
+    );
 
-  const res = await client.post(
-    `/api/personas/${personaId}/rostro`,
-    formData,
-    {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    }
-  );
 
-  return res.data;
-},
-async getCurrentUser() {
-  const res = await client.get<{
-    id: number;
-    nombre: string;
-    email: string;
-    rol: string;
-    activo: boolean;
-  }>('/api/auth/me');
+    const res = await client.post(
+      `/api/personas/${personaId}/rostro`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
 
-  return res.data;
-},
+    return res.data;
+  },
+  async getCurrentUser() {
+    const res = await client.get<{
+      id: number;
+      nombre: string;
+      email: string;
+      rol: string;
+      activo: boolean;
+    }>('/api/auth/me');
+
+    return res.data;
+  },
 };
 
 

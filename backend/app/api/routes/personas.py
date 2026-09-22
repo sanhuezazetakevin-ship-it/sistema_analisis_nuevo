@@ -18,6 +18,8 @@ from app.schemas.persona_schema import (
 )
 from app.services.face_service import face_service
 
+from app.core.security import get_current_user, require_role
+from app.models.usuario_model import Usuario
 
 router = APIRouter(
     prefix="/api/personas",
@@ -36,6 +38,7 @@ router = APIRouter(
 )
 def crear_persona(
     persona: PersonaCreate,
+    current_user: Usuario = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     nueva_persona = Persona(
@@ -59,6 +62,7 @@ def crear_persona(
     response_model=list[PersonaResponse]
 )
 def listar_personas(
+    current_user: Usuario = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     return (
@@ -78,6 +82,7 @@ def listar_personas(
 async def registrar_rostro(
     persona_id: int,
     file: UploadFile = File(...),
+    current_user: Usuario = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
 
@@ -182,6 +187,7 @@ async def registrar_rostro(
 )
 def obtener_persona(
     persona_id: int,
+    current_user: Usuario = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     persona = (
