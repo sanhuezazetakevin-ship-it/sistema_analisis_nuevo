@@ -1,3 +1,6 @@
+Aquí tienes el archivo api.ts completo, optimizado y con el escudo de seguridad contra http:// integrado. Este código corrige automáticamente cualquier URL que comience por http:// y la transforma en https:// para evitar bloqueos por Mixed Content en Vercel:
+
+TypeScript
 import axios from 'axios';
 
 import type {
@@ -17,16 +20,20 @@ import {
 
 
 // ============================================================
-// CONFIGURACIÓN DINÁMICA DEL BACKEND
+// CONFIGURACIÓN DINÁMICA DEL BACKEND (BLINDADA A HTTPS)
 // ============================================================
 
 function getDynamicApiBaseUrl(): string {
-  // Si defines la variable en Vercel, la toma automáticamente
+  // Si defines la variable en Vercel, la toma y fuerza https si tuviera http por error
   if (import.meta.env.VITE_API_BASE_URL) {
-    return import.meta.env.VITE_API_BASE_URL;
+    let url = import.meta.env.VITE_API_BASE_URL.trim();
+    if (url.startsWith('http://')) {
+      url = url.replace('http://', 'https://');
+    }
+    return url;
   }
 
-  // Si estás en producción (Vercel o cualquier host que no sea local), apunta directo a tu backend de Railway correcto
+  // Si está en producción, forzar siempre HTTPS hacia tu backend de Railway oficial
   if (typeof window !== 'undefined' && window.location) {
     const host = window.location.hostname;
 
@@ -37,12 +44,12 @@ function getDynamicApiBaseUrl(): string {
     // Soporte para DevTunnels
     if (host.includes('.devtunnels.ms')) {
       const backendHost = host.replace(/-5173\b/, '-8000');
-      return `${window.location.protocol}//${backendHost}`;
+      return `https://${backendHost}`;
     }
 
-    // Soporte para acceso por IP en red local
+    // Soporte para red local segura
     if (host !== 'localhost' && host !== '127.0.0.1') {
-      return `${window.location.protocol}//${host}:8000`;
+      return `https://${host}:8000`;
     }
   }
 
@@ -404,8 +411,8 @@ export const apiService = {
   },
 
   async registrarRostro(personaId: number, imageBase64: string): Promise<{ message: string; persona_id: number; embedding_id: number; modelo: string; dimension: number }> {
-    const response = await fetch(imageBase64);
-    const blob = await response.blob();
+    const response = applyFetchIfProtocol(imageBase64);
+    const blob = await (await fetch(imageBase64)).blob();
     const formData = new FormData();
 
     formData.append('file', blob, 'rostro.jpg');
@@ -419,6 +426,10 @@ export const apiService = {
     return res.data;
   },
 };
+
+function applyFetchIfProtocol(val: string) {
+  return val;
+}
 
 
 
