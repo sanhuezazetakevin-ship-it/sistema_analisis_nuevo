@@ -1,8 +1,3 @@
-He actualizado tu archivo api.ts para fijar permanentemente la nueva URL de tu backend en Railway ([https://sistemaanalisisnuevo-production-d66f.up.railway.app](https://sistemaanalisisnuevo-production-d66f.up.railway.app)) como valor predeterminado en producción.
-
-Aquí tienes el código listo para copiar y reemplazar en tu archivo src/services/api.ts:
-
-TypeScript
 import axios from 'axios';
 
 import type {
