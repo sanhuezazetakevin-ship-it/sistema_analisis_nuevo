@@ -1,3 +1,4 @@
+fastapi
 uvicorn[standard]
 sqlalchemy
 psycopg2-binary
@@ -6,7 +7,7 @@ pydantic-settings
 python-multipart
 numpy
 scipy
-opencv-python
+opencv-python-headless
 scikit-learn
 email-validator
 insightface
@@ -15,9 +16,3 @@ python-jose[cryptography]
 passlib[bcrypt]
 bcrypt==4.0.1
 joblib
-fastapi
-uvicorn
-sqlalchemy
-pydantic-settings
-psycopg2-binary
-python-multipart

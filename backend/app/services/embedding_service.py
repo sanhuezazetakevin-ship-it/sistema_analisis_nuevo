@@ -7,15 +7,19 @@ class EmbeddingService:
 
     def __init__(self):
 
+        print("Inicializando modelo facial ligero...")
+
         self.model = FaceAnalysis(
-            name="buffalo_l",
+            name="buffalo_s",
             providers=["CPUExecutionProvider"]
         )
 
         self.model.prepare(
-            ctx_id=0,
-            det_size=(640, 640)
+            ctx_id=-1,
+            det_size=(320, 320)
         )
+
+        print("Modelo facial cargado correctamente.")
 
     def generate_embedding(
         self,
@@ -44,13 +48,11 @@ class EmbeddingService:
         image_bytes: bytes
     ) -> np.ndarray:
 
-        # Convertir bytes de la imagen a numpy
         image_array = np.frombuffer(
             image_bytes,
             dtype=np.uint8
         )
 
-        # Decodificar imagen
         image = cv2.imdecode(
             image_array,
             cv2.IMREAD_COLOR
@@ -61,7 +63,6 @@ class EmbeddingService:
                 "No se pudo leer la imagen recibida."
             )
 
-        # Generar embedding
         return self.generate_embedding(image)
 
     def cosine_similarity(
