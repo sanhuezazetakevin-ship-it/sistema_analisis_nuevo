@@ -1,6 +1,3 @@
-Aquí tienes el archivo api.ts completo, optimizado y con el escudo de seguridad contra http:// integrado. Este código corrige automáticamente cualquier URL que comience por http:// y la transforma en https:// para evitar bloqueos por Mixed Content en Vercel:
-
-TypeScript
 import axios from 'axios';
 
 import type {
