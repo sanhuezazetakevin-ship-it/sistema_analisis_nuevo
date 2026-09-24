@@ -5,13 +5,17 @@ psycopg2-binary
 pydantic
 pydantic-settings
 python-multipart
+
 numpy
 scipy
 opencv-python-headless
+
 scikit-learn
 email-validator
+
 insightface
 onnxruntime
+
 python-jose[cryptography]
 passlib[bcrypt]
 bcrypt==4.0.1
