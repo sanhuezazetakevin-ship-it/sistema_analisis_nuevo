@@ -21,7 +21,6 @@ import {
 // ============================================================
 
 function getDynamicApiBaseUrl(): string {
-  // 1. Si se definió una variable de entorno, limpiar y forzar HTTPS obligatoriamente
   if (import.meta.env.VITE_API_BASE_URL) {
     let url = import.meta.env.VITE_API_BASE_URL.trim();
     if (url.startsWith('http://')) {
@@ -30,23 +29,19 @@ function getDynamicApiBaseUrl(): string {
     return url;
   }
 
-  // 2. Detección automática según el hostname del navegador
   if (typeof window !== 'undefined' && window.location) {
     const host = window.location.hostname;
     
-    // Entorno local puro de desarrollo
     if (host === 'localhost' || host === '127.0.0.1') {
       return 'http://localhost:8000';
     }
 
-    // Soporte para túneles de desarrollo (DevTunnels)
     if (host.includes('.devtunnels.ms')) {
       const backendHost = host.replace(/-5173\b/, '-8000');
       return `https://${backendHost}`;
     }
   }
 
-  // 3. PRODUCCIÓN (Vercel): Retorna de manera absoluta y segura el backend en Railway por HTTPS
   return 'https://sistemaanalisisnuevo-production-d66f.up.railway.app';
 }
 
@@ -162,7 +157,8 @@ export const apiService = {
       return getStoredPersonas();
     }
     try {
-      const res = await client.get<Persona[]>('/api/personas');
+      // CORREGIDO: Añadido el slash final para prevenir redirección 307
+      const res = await client.get<Persona[]>('/api/personas/');
       return res.data;
     } catch {
       return getStoredPersonas();
@@ -192,7 +188,8 @@ export const apiService = {
       return newPersona;
     }
 
-    const res = await client.post<Persona>('/api/personas', data);
+    // CORREGIDO: Añadido el slash final
+    const res = await client.post<Persona>('/api/personas/', data);
     return res.data;
   },
 
@@ -266,7 +263,8 @@ export const apiService = {
       return getStoredLogs();
     }
     try {
-      const res = await client.get<RecognitionLog[]>('/api/reconocimiento/historial');
+      // CORREGIDO: Añadido el slash final
+      const res = await client.get<RecognitionLog[]>('/api/reconocimiento/historial/');
       return res.data;
     } catch {
       return getStoredLogs();
