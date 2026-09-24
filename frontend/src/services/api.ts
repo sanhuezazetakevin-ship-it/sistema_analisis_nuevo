@@ -1,3 +1,8 @@
+He actualizado tu archivo api.ts para fijar permanentemente la nueva URL de tu backend en Railway ([https://sistemaanalisisnuevo-production-d66f.up.railway.app](https://sistemaanalisisnuevo-production-d66f.up.railway.app)) como valor predeterminado en producción.
+
+Aquí tienes el código listo para copiar y reemplazar en tu archivo src/services/api.ts:
+
+TypeScript
 import axios from 'axios';
 
 import type {
@@ -26,12 +31,12 @@ function getDynamicApiBaseUrl(): string {
     return import.meta.env.VITE_API_BASE_URL;
   }
 
-  // Si estás en producción en Railway (o Vercel sin variable explícita), apunta directo a tu backend
+  // Si estás en producción (Vercel o cualquier host que no sea local), apunta directo a tu backend de Railway correcto
   if (typeof window !== 'undefined' && window.location) {
     const host = window.location.hostname;
 
     if (host !== 'localhost' && host !== '127.0.0.1' && !host.includes('.devtunnels.ms')) {
-      return 'https://sistemaanalisisnuevo-production.up.railway.app';
+      return 'https://sistemaanalisisnuevo-production-d66f.up.railway.app';
     }
 
     // Soporte para DevTunnels
@@ -410,7 +415,6 @@ export const apiService = {
 
     formData.append('file', blob, 'rostro.jpg');
 
-    // Sin cabecera manual para permitir que Axios gestione el multipart boundary correctamente
     const res = await client.post(`/api/personas/${personaId}/rostro`, formData);
     return res.data;
   },
