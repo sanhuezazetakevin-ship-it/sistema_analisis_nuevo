@@ -7,24 +7,54 @@ class EmbeddingService:
 
     def __init__(self):
 
-        print("Inicializando modelo facial ligero...")
+        print("========================================")
+        print("Inicializando modelo facial...")
+        print("Modelo: buffalo_s")
+        print("Proveedor: CPU")
+        print("========================================")
 
         self.model = FaceAnalysis(
             name="buffalo_s",
             providers=["CPUExecutionProvider"]
         )
 
+        # Menor resolución = menor consumo de memoria
         self.model.prepare(
             ctx_id=-1,
             det_size=(320, 320)
         )
 
+        print("========================================")
         print("Modelo facial cargado correctamente.")
+        print("========================================")
 
     def generate_embedding(
         self,
         image: np.ndarray
     ) -> np.ndarray:
+
+        if image is None:
+            raise ValueError(
+                "La imagen recibida es inválida."
+            )
+
+        # Reducir imágenes demasiado grandes
+        max_size = 640
+
+        height, width = image.shape[:2]
+
+        if max(height, width) > max_size:
+
+            scale = max_size / max(height, width)
+
+            new_width = int(width * scale)
+            new_height = int(height * scale)
+
+            image = cv2.resize(
+                image,
+                (new_width, new_height),
+                interpolation=cv2.INTER_AREA
+            )
 
         faces = self.model.get(image)
 
@@ -47,6 +77,11 @@ class EmbeddingService:
         self,
         image_bytes: bytes
     ) -> np.ndarray:
+
+        if not image_bytes:
+            raise ValueError(
+                "No se recibió ninguna imagen."
+            )
 
         image_array = np.frombuffer(
             image_bytes,
@@ -95,4 +130,5 @@ class EmbeddingService:
         return float(similarity)
 
 
+# Instancia única del servicio
 embedding_service = EmbeddingService()

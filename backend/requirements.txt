@@ -1,5 +1,5 @@
 fastapi
-uvicorn[standard]
+uvicorn
 sqlalchemy
 psycopg2-binary
 pydantic
@@ -8,6 +8,7 @@ python-multipart
 
 numpy
 scipy
+
 opencv-python-headless
 
 scikit-learn
@@ -19,4 +20,5 @@ onnxruntime
 python-jose[cryptography]
 passlib[bcrypt]
 bcrypt==4.0.1
+
 joblib
