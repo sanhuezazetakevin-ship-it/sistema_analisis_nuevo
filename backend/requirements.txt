@@ -22,3 +22,5 @@ passlib[bcrypt]
 bcrypt==4.0.1
 
 joblib
+
+# forzar recompilación
