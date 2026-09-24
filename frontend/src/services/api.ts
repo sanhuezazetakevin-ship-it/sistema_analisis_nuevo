@@ -21,55 +21,32 @@ import {
 // ============================================================
 
 function getDynamicApiBaseUrl(): string {
-
+  // Si defines la variable en Vercel, la toma automáticamente
   if (import.meta.env.VITE_API_BASE_URL) {
     return import.meta.env.VITE_API_BASE_URL;
   }
 
-  if (
-    typeof window !== 'undefined' &&
-    window.location
-  ) {
+  // Si estás en producción en Railway (o Vercel sin variable explícita), apunta directo a tu backend
+  if (typeof window !== 'undefined' && window.location) {
+    const host = window.location.hostname;
 
-    const host =
-      window.location.hostname;
-
+    if (host !== 'localhost' && host !== '127.0.0.1' && !host.includes('.devtunnels.ms')) {
+      return 'https://sistemaanalisisnuevo-production.up.railway.app';
+    }
 
     // Soporte para DevTunnels
-    // Ejemplo:
-    // frontend:
-    // zdw7gnjp-5173.brs.devtunnels.ms
-    //
-    // backend:
-    // zdw7gnjp-8000.brs.devtunnels.ms
-
     if (host.includes('.devtunnels.ms')) {
-
-      const backendHost =
-        host.replace(
-          /-5173\b/,
-          '-8000'
-        );
-
+      const backendHost = host.replace(/-5173\b/, '-8000');
       return `${window.location.protocol}//${backendHost}`;
     }
 
-
-    // Soporte para acceso por IP
-    // dentro de una red local
-
-    if (
-      host !== 'localhost' &&
-      host !== '127.0.0.1'
-    ) {
-
+    // Soporte para acceso por IP en red local
+    if (host !== 'localhost' && host !== '127.0.0.1') {
       return `${window.location.protocol}//${host}:8000`;
     }
   }
 
-
-  // Desarrollo local
-
+  // Desarrollo local por defecto
   return 'http://localhost:8000';
 }
 
@@ -79,12 +56,8 @@ function getDynamicApiBaseUrl(): string {
 // ============================================================
 
 const client = axios.create({
-
-  baseURL:
-    getDynamicApiBaseUrl(),
-
+  baseURL: getDynamicApiBaseUrl(),
   timeout: 10000,
-
 });
 
 
@@ -94,18 +67,10 @@ const client = axios.create({
 
 client.interceptors.request.use(
   (config) => {
-
-    const token =
-      localStorage.getItem(
-        'auth_token'
-      );
-
+    const token = localStorage.getItem('auth_token');
     if (token) {
-
-      config.headers.Authorization =
-        `Bearer ${token}`;
+      config.headers.Authorization = `Bearer ${token}`;
     }
-
     return config;
   }
 );
@@ -116,22 +81,11 @@ client.interceptors.request.use(
 // ============================================================
 
 const STORAGE_KEYS = {
-
-  PERSONAS:
-    'facial_personas_db',
-
-  LOGS:
-    'facial_recognition_logs',
-
-  METRICS:
-    'facial_ml_metrics',
-
-  USE_MOCK:
-    'facial_use_mock_api',
-
-  USUARIOS:
-    'facial_usuarios_db',
-
+  PERSONAS: 'facial_personas_db',
+  LOGS: 'facial_recognition_logs',
+  METRICS: 'facial_ml_metrics',
+  USE_MOCK: 'facial_use_mock_api',
+  USUARIOS: 'facial_usuarios_db',
 };
 
 
@@ -139,26 +93,12 @@ const STORAGE_KEYS = {
 // USUARIOS MOCK
 // ============================================================
 
-function getStoredUsuarios():
-  UsuarioSystem[] {
-
-  const data =
-    localStorage.getItem(
-      STORAGE_KEYS.USUARIOS
-    );
-
+function getStoredUsuarios(): UsuarioSystem[] {
+  const data = localStorage.getItem(STORAGE_KEYS.USUARIOS);
   if (!data) {
-
-    localStorage.setItem(
-      STORAGE_KEYS.USUARIOS,
-      JSON.stringify(
-        INITIAL_USUARIOS
-      )
-    );
-
+    localStorage.setItem(STORAGE_KEYS.USUARIOS, JSON.stringify(INITIAL_USUARIOS));
     return INITIAL_USUARIOS as UsuarioSystem[];
   }
-
   return JSON.parse(data);
 }
 
@@ -167,26 +107,12 @@ function getStoredUsuarios():
 // PERSONAS MOCK
 // ============================================================
 
-function getStoredPersonas():
-  Persona[] {
-
-  const data =
-    localStorage.getItem(
-      STORAGE_KEYS.PERSONAS
-    );
-
+function getStoredPersonas(): Persona[] {
+  const data = localStorage.getItem(STORAGE_KEYS.PERSONAS);
   if (!data) {
-
-    localStorage.setItem(
-      STORAGE_KEYS.PERSONAS,
-      JSON.stringify(
-        INITIAL_PERSONAS
-      )
-    );
-
+    localStorage.setItem(STORAGE_KEYS.PERSONAS, JSON.stringify(INITIAL_PERSONAS));
     return INITIAL_PERSONAS;
   }
-
   return JSON.parse(data);
 }
 
@@ -195,26 +121,12 @@ function getStoredPersonas():
 // HISTORIAL MOCK
 // ============================================================
 
-function getStoredLogs():
-  RecognitionLog[] {
-
-  const data =
-    localStorage.getItem(
-      STORAGE_KEYS.LOGS
-    );
-
+function getStoredLogs(): RecognitionLog[] {
+  const data = localStorage.getItem(STORAGE_KEYS.LOGS);
   if (!data) {
-
-    localStorage.setItem(
-      STORAGE_KEYS.LOGS,
-      JSON.stringify(
-        INITIAL_LOGS
-      )
-    );
-
+    localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(INITIAL_LOGS));
     return INITIAL_LOGS;
   }
-
   return JSON.parse(data);
 }
 
@@ -223,32 +135,19 @@ function getStoredLogs():
 // MODO MOCK
 // ============================================================
 
-export const isMockMode =
-  (): boolean => {
-
-    const setting =
-      localStorage.getItem(
-        STORAGE_KEYS.USE_MOCK
-      );
-
-    return setting === null
-      ? true
-      : setting === 'true';
-  };
+export const isMockMode = (): boolean => {
+  const setting = localStorage.getItem(STORAGE_KEYS.USE_MOCK);
+  return setting === null ? true : setting === 'true';
+};
 
 
 // ============================================================
 // CAMBIAR MODO MOCK
 // ============================================================
 
-export const setMockMode =
-  (enabled: boolean) => {
-
-    localStorage.setItem(
-      STORAGE_KEYS.USE_MOCK,
-      String(enabled)
-    );
-  };
+export const setMockMode = (enabled: boolean) => {
+  localStorage.setItem(STORAGE_KEYS.USE_MOCK, String(enabled));
+};
 
 
 // ============================================================
@@ -257,38 +156,17 @@ export const setMockMode =
 
 export const apiService = {
 
-
-  // ==========================================================
-  // 1. OBTENER PERSONAS
-  // ==========================================================
-
-  async getPersonas():
-    Promise<Persona[]> {
-
+  async getPersonas(): Promise<Persona[]> {
     if (isMockMode()) {
-
       return getStoredPersonas();
     }
-
     try {
-
-      const res =
-        await client.get<Persona[]>(
-          '/api/personas'
-        );
-
+      const res = await client.get<Persona[]>('/api/personas');
       return res.data;
-
     } catch {
-
       return getStoredPersonas();
     }
   },
-
-
-  // ==========================================================
-  // 2. REGISTRAR PERSONA
-  // ==========================================================
 
   async createPersona(
     data: {
@@ -297,925 +175,251 @@ export const apiService = {
       foto_base64?: string;
     }
   ): Promise<Persona> {
-
     if (isMockMode()) {
-
-      const current =
-        getStoredPersonas();
-
-      const newPersona:
-        Persona = {
-
-        id:
-          current.length > 0
-            ? Math.max(
-              ...current.map(
-                p => p.id
-              )
-            ) + 1
-            : 1,
-
-        nombre:
-          data.nombre,
-
-        email:
-          data.email,
-
-        activo:
-          true,
-
-        foto_url:
-          data.foto_base64 ||
-          'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
-
-        created_at:
-          new Date().toISOString(),
-
-        total_embeddings:
-          1,
+      const current = getStoredPersonas();
+      const newPersona: Persona = {
+        id: current.length > 0 ? Math.max(...current.map(p => p.id)) + 1 : 1,
+        nombre: data.nombre,
+        email: data.email,
+        activo: true,
+        foto_url: data.foto_base64 || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+        created_at: new Date().toISOString(),
+        total_embeddings: 1,
       };
-
-      const updated =
-        [
-          newPersona,
-          ...current
-        ];
-
-      localStorage.setItem(
-        STORAGE_KEYS.PERSONAS,
-        JSON.stringify(updated)
-      );
-
+      const updated = [newPersona, ...current];
+      localStorage.setItem(STORAGE_KEYS.PERSONAS, JSON.stringify(updated));
       return newPersona;
     }
 
-
-    const res =
-      await client.post<Persona>(
-        '/api/personas',
-        data
-      );
-
+    const res = await client.post<Persona>('/api/personas', data);
     return res.data;
   },
-
-
-  // ==========================================================
-  // 3. RECONOCIMIENTO FACIAL
-  // ==========================================================
 
   async recognizeFace(
     imageBase64: string,
     umbral: number = 0.75
   ): Promise<RecognitionResult> {
 
-
-    // ========================================================
-    // MODO MOCK
-    // ========================================================
-
     if (isMockMode()) {
+      await new Promise(r => setTimeout(r, 600));
+      const personas = getStoredPersonas().filter(p => p.activo);
+      const shouldMatch = personas.length > 0 && Math.random() > 0.25;
+      const matchedPersona = shouldMatch ? personas[Math.floor(Math.random() * personas.length)] : null;
+      const similitud = matchedPersona ? +(0.76 + Math.random() * 0.22).toFixed(2) : +(0.42 + Math.random() * 0.25).toFixed(2);
+      const distancia = +(1.0 - similitud).toFixed(2);
+      const coincide = similitud >= umbral;
+      const rawProb = 1 / (1 + Math.exp(-12 * (similitud - 0.70)));
+      const probabilidad_calibrada = +Math.min(0.99, Math.max(0.01, rawProb)).toFixed(2);
 
-      await new Promise(
-        r => setTimeout(r, 600)
-      );
-
-      const personas =
-        getStoredPersonas()
-          .filter(
-            p => p.activo
-          );
-
-
-      const shouldMatch =
-        personas.length > 0 &&
-        Math.random() > 0.25;
-
-
-      const matchedPersona =
-        shouldMatch
-          ? personas[
-          Math.floor(
-            Math.random() *
-            personas.length
-          )
-          ]
-          : null;
-
-
-      const similitud =
-        matchedPersona
-
-          ? +(
-            0.76 +
-            Math.random() * 0.22
-          ).toFixed(2)
-
-          : +(
-            0.42 +
-            Math.random() * 0.25
-          ).toFixed(2);
-
-
-      const distancia =
-        +(
-          1.0 -
-          similitud
-        ).toFixed(2);
-
-
-      const coincide =
-        similitud >= umbral;
-
-
-      const rawProb =
-        1 /
-        (
-          1 +
-          Math.exp(
-            -12 *
-            (
-              similitud -
-              0.70
-            )
-          )
-        );
-
-
-      const probabilidad_calibrada =
-        +Math.min(
-          0.99,
-          Math.max(
-            0.01,
-            rawProb
-          )
-        ).toFixed(2);
-
-
-      const result:
-        RecognitionResult = {
-
-        persona_id:
-          coincide &&
-            matchedPersona
-            ? matchedPersona.id
-            : null,
-
-        nombre:
-          coincide &&
-            matchedPersona
-            ? matchedPersona.nombre
-            : 'No identificado',
-
+      const result: RecognitionResult = {
+        persona_id: coincide && matchedPersona ? matchedPersona.id : null,
+        nombre: coincide && matchedPersona ? matchedPersona.nombre : 'No identificado',
         similitud,
-
         distancia,
-
         umbral,
-
         coincide,
-
         probabilidad_calibrada,
-
-        calidad_imagen:
-          similitud > 0.85
-            ? 'Alta'
-            : similitud > 0.65
-              ? 'Buena'
-              : 'Media',
-
-        iluminacion:
-          Math.random() > 0.3
-            ? 'Alta'
-            : 'Media',
-
-        tiempo_ms:
-          Math.floor(
-            80 +
-            Math.random() * 50
-          ),
-
-        candidatos_alternativos:
-          personas
-            .slice(0, 3)
-            .map(p => ({
-
-              persona_id:
-                p.id,
-
-              nombre:
-                p.nombre,
-
-              similitud:
-                +(
-                  similitud *
-                  (
-                    0.6 +
-                    Math.random() *
-                    0.3
-                  )
-                ).toFixed(2),
-
-            })),
+        calidad_imagen: similitud > 0.85 ? 'Alta' : similitud > 0.65 ? 'Buena' : 'Media',
+        iluminacion: Math.random() > 0.3 ? 'Alta' : 'Media',
+        tiempo_ms: Math.floor(80 + Math.random() * 50),
+        candidatos_alternativos: personas.slice(0, 3).map(p => ({
+          persona_id: p.id,
+          nombre: p.nombre,
+          similitud: +(similitud * (0.6 + Math.random() * 0.3)).toFixed(2),
+        })),
       };
 
-
-      const logs =
-        getStoredLogs();
-
-
-      const newLog:
-        RecognitionLog = {
-
-        id:
-          Date.now(),
-
-        persona_id:
-          result.persona_id,
-
-        persona_nombre:
-          result.nombre,
-
-        similitud:
-          result.similitud,
-
-        distancia:
-          result.distancia,
-
-        umbral:
-          result.umbral,
-
-        coincide:
-          result.coincide,
-
-        probabilidad_calibrada:
-          result.probabilidad_calibrada,
-
-        calidad_imagen:
-          result.calidad_imagen,
-
-        iluminacion:
-          result.iluminacion,
-
-        created_at:
-          new Date().toISOString(),
+      const logs = getStoredLogs();
+      const newLog: RecognitionLog = {
+        id: Date.now(),
+        persona_id: result.persona_id,
+        persona_nombre: result.nombre,
+        similitud: result.similitud,
+        distancia: result.distancia,
+        umbral: result.umbral,
+        coincide: result.coincide,
+        probabilidad_calibrada: result.probabilidad_calibrada,
+        calidad_imagen: result.calidad_imagen,
+        iluminacion: result.iluminacion,
+        created_at: new Date().toISOString(),
       };
 
-
-      localStorage.setItem(
-        STORAGE_KEYS.LOGS,
-        JSON.stringify(
-          [
-            newLog,
-            ...logs
-          ]
-        )
-      );
-
-
+      localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify([newLog, ...logs]));
       return result;
     }
 
+    const formData = new FormData();
+    const response = await fetch(imageBase64);
+    const blob = await response.blob();
+    const file = new File([blob], 'rostro.jpg', { type: blob.type || 'image/jpeg' });
 
-    // ========================================================
-    // BACKEND REAL
-    // ========================================================
+    formData.append('file', file);
+    formData.append('threshold', String(umbral));
 
-    /*
-      FastAPI espera:
-
-      POST /api/reconocimiento
-
-      multipart/form-data
-
-      campo:
-
-      file
-    */
-
-
-    const formData =
-      new FormData();
-
-
-    // Convertir Base64
-    // a Blob
-
-    const response =
-      await fetch(
-        imageBase64
-      );
-
-
-    const blob =
-      await response.blob();
-
-
-    // Convertir Blob
-    // a File
-
-    const file =
-      new File(
-        [blob],
-        'rostro.jpg',
-        {
-          type:
-            blob.type ||
-            'image/jpeg'
-        }
-      );
-
-
-    // Campo esperado
-    // por UploadFile
-
-    formData.append(
-      'file',
-      file
-    );
-
-    formData.append(
-      'threshold',
-      String(umbral)
-    );
-
-
-    // Enviar imagen
-    // al backend
-
-    const res =
-      await client.post<RecognitionResult>(
-        '/api/reconocimiento',
-        formData
-      );
-
-
+    const res = await client.post<RecognitionResult>('/api/reconocimiento', formData);
     return res.data;
   },
 
-
-  // ==========================================================
-  // 4. HISTORIAL
-  // ==========================================================
-
-  async getHistorial():
-    Promise<RecognitionLog[]> {
-
+  async getHistorial(): Promise<RecognitionLog[]> {
     if (isMockMode()) {
-
       return getStoredLogs();
     }
-
     try {
-
-      const res =
-        await client.get<
-          RecognitionLog[]
-        >(
-          '/api/reconocimiento/historial'
-        );
-
+      const res = await client.get<RecognitionLog[]>('/api/reconocimiento/historial');
       return res.data;
-
     } catch {
-
       return getStoredLogs();
     }
   },
 
-
-  // ==========================================================
-  // 5. MÉTRICAS ML
-  // ==========================================================
-
-  async getMetrics():
-    Promise<MLMetrics> {
-
+  async getMetrics(): Promise<MLMetrics> {
     if (isMockMode()) {
-
       return MOCK_ML_METRICS;
     }
-
     try {
-
-      const res =
-        await client.get<MLMetrics>(
-          '/api/modelos/metricas'
-        );
-
+      const res = await client.get<MLMetrics>('/api/modelos/metricas');
       return res.data;
-
     } catch {
-
       return MOCK_ML_METRICS;
     }
   },
 
-
-  // ==========================================================
-  // 6. ENTRENAR MODELO ML
-  // ==========================================================
-
-  async trainModel(
-    modeloTipo: string
-  ): Promise<{
-    success: boolean;
-    metrics: MLMetrics;
-  }> {
-
+  async trainModel(modeloTipo: string): Promise<{ success: boolean; metrics: MLMetrics }> {
     if (isMockMode()) {
-
-      await new Promise(
-        r => setTimeout(r, 1200)
-      );
-
+      await new Promise(r => setTimeout(r, 1200));
       return {
-
-        success:
-          true,
-
+        success: true,
         metrics: {
-
           ...MOCK_ML_METRICS,
-
-          modelo_tipo:
-            modeloTipo as
-            MLMetrics[
-            'modelo_tipo'
-            ],
-
-          accuracy:
-            +(
-              0.95 +
-              Math.random() *
-              0.03
-            ).toFixed(3),
-
-          f1_score:
-            +(
-              0.94 +
-              Math.random() *
-              0.04
-            ).toFixed(3),
-
+          modelo_tipo: modeloTipo as MLMetrics['modelo_tipo'],
+          accuracy: +(0.95 + Math.random() * 0.03).toFixed(3),
+          f1_score: +(0.94 + Math.random() * 0.04).toFixed(3),
         }
       };
     }
 
-
-    const res =
-      await client.post<{
-        success: boolean;
-        metrics: MLMetrics;
-      }>(
-        '/api/modelos/entrenar'
-      );
-
-
+    const res = await client.post<{ success: boolean; metrics: MLMetrics }>('/api/modelos/entrenar');
     return res.data;
   },
 
-
-  // ==========================================================
-  // 7. PROBABILIDAD CALIBRADA
-  // ==========================================================
-
-  calculateCalibratedProbability(
-    similitud: number,
-    calidad: string,
-    iluminacion: string
-  ): number {
-
+  calculateCalibratedProbability(similitud: number, calidad: string, iluminacion: string): number {
     let factor = 0;
+    if (calidad === 'Alta') factor += 0.04;
+    else if (calidad === 'Baja') factor -= 0.06;
 
+    if (iluminacion === 'Alta') factor += 0.03;
+    else if (iluminacion === 'Baja') factor -= 0.05;
 
-    if (
-      calidad === 'Alta'
-    ) {
-
-      factor += 0.04;
-
-    } else if (
-      calidad === 'Baja'
-    ) {
-
-      factor -= 0.06;
-    }
-
-
-    if (
-      iluminacion === 'Alta'
-    ) {
-
-      factor += 0.03;
-
-    } else if (
-      iluminacion === 'Baja'
-    ) {
-
-      factor -= 0.05;
-    }
-
-
-    const z =
-      14 *
-      (
-        similitud -
-        0.72
-      ) +
-      factor;
-
-
-    const prob =
-      1 /
-      (
-        1 +
-        Math.exp(-z)
-      );
-
-
-    return +Math.min(
-      0.99,
-      Math.max(
-        0.01,
-        prob
-      )
-    ).toFixed(2);
+    const z = 14 * (similitud - 0.72) + factor;
+    const prob = 1 / (1 + Math.exp(-z));
+    return +Math.min(0.99, Math.max(0.01, prob)).toFixed(2);
   },
 
-
-  // ==========================================================
-  // 8. LOGIN
-  // ==========================================================
-
-  async loginUser(
-    email: string,
-    password: string
-  ): Promise<{
-    access_token: string;
-    usuario: any;
-  }> {
-
+  async loginUser(email: string, password: string): Promise<{ access_token: string; usuario: any }> {
     if (isMockMode()) {
-
       return {
-
-        access_token:
-          'mock-jwt-token-12345',
-
+        access_token: 'mock-jwt-token-12345',
         usuario: {
-
-          id:
-            1,
-
-          nombre:
-            email.split('@')[0],
-
+          id: 1,
+          nombre: email.split('@')[0],
           email,
-
-          rol:
-            'usuario',
-
-          activo:
-            true,
+          rol: 'usuario',
+          activo: true,
         }
       };
     }
 
+    const params = new URLSearchParams();
+    params.append('username', email);
+    params.append('password', password);
 
-    /*
-      FastAPI OAuth2PasswordRequestForm
-      espera:
+    const res = await client.post('/api/auth/login', params, {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    });
 
-      username
-      password
-
-      mediante:
-
-      application/x-www-form-urlencoded
-    */
-
-    const params =
-      new URLSearchParams();
-
-
-    params.append(
-      'username',
-      email
-    );
-
-
-    params.append(
-      'password',
-      password
-    );
-
-
-    const res =
-      await client.post(
-        '/api/auth/login',
-        params,
-        {
-          headers: {
-            'Content-Type':
-              'application/x-www-form-urlencoded',
-          },
-        }
-      );
-
-
-    if (
-      res.data &&
-      res.data.access_token
-    ) {
-
-      localStorage.setItem(
-        'auth_token',
-        res.data.access_token
-      );
+    if (res.data && res.data.access_token) {
+      localStorage.setItem('auth_token', res.data.access_token);
     }
-
-
     return res.data;
   },
 
-  // ==========================================================
-  // 8.1 REGISTRO DE USUARIO
-  // ==========================================================
-
-  async registerUser(
-    nombre: string,
-    email: string,
-    password: string
-  ): Promise<{
-    id: number;
-    nombre: string;
-    email: string;
-    rol: string;
-    activo: boolean;
-  }> {
-
+  async registerUser(nombre: string, email: string, password: string): Promise<{ id: number; nombre: string; email: string; rol: string; activo: boolean }> {
     if (isMockMode()) {
-
-      await new Promise(
-        r => setTimeout(r, 500)
-      );
-
-      const current =
-        getStoredUsuarios();
-
-      const yaExiste =
-        current.some(
-          u => u.email.toLowerCase() === email.toLowerCase()
-        );
-
+      await new Promise(r => setTimeout(r, 500));
+      const current = getStoredUsuarios();
+      const yaExiste = current.some(u => u.email.toLowerCase() === email.toLowerCase());
       if (yaExiste) {
-        throw new Error(
-          'Ya existe un usuario registrado con ese correo.'
-        );
+        throw new Error('Ya existe un usuario registrado con ese correo.');
       }
-
       const nuevoUsuario: UsuarioSystem = {
-        id:
-          current.length > 0
-            ? Math.max(...current.map(u => u.id)) + 1
-            : 1,
+        id: current.length > 0 ? Math.max(...current.map(u => u.id)) + 1 : 1,
         nombre,
         email,
         rol: 'usuario',
         activo: true,
       } as UsuarioSystem;
 
-      localStorage.setItem(
-        STORAGE_KEYS.USUARIOS,
-        JSON.stringify([nuevoUsuario, ...current])
-      );
-
+      localStorage.setItem(STORAGE_KEYS.USUARIOS, JSON.stringify([nuevoUsuario, ...current]));
       return nuevoUsuario;
     }
 
-    /*
-      FastAPI espera:
-
-      POST /api/auth/registro
-
-      application/json
-
-      {
-        nombre, email, password
-      }
-    */
-
-    const res =
-      await client.post(
-        '/api/auth/registro',
-        {
-          nombre,
-          email,
-          password,
-        }
-      );
-
+    const res = await client.post('/api/auth/registro', { nombre, email, password });
     return res.data;
   },
 
-
-  // ==========================================================
-  // 9. LISTAR USUARIOS DEL SISTEMA
-  // ==========================================================
-
-  async getUsuariosSystem():
-    Promise<UsuarioSystem[]> {
-
+  async getUsuariosSystem(): Promise<UsuarioSystem[]> {
     if (isMockMode()) {
-
       return getStoredUsuarios();
     }
-
-
     try {
-
-      const res =
-        await client.get<{
-          success: boolean;
-          usuarios: UsuarioSystem[];
-        }>(
-          '/api/admin/usuarios'
-        );
-
-
+      const res = await client.get<{ success: boolean; usuarios: UsuarioSystem[] }>('/api/admin/usuarios');
       return res.data.usuarios;
-
     } catch {
-
       return getStoredUsuarios();
     }
   },
 
-
-  // ==========================================================
-  // 10. CAMBIAR ROL DE USUARIO
-  // ==========================================================
-
-  async updateUserRole(
-    usuarioId: number,
-    nuevoRol: string
-  ): Promise<any> {
-
+  async updateUserRole(usuarioId: number, nuevoRol: string): Promise<any> {
     if (isMockMode()) {
-
-      const current =
-        getStoredUsuarios();
-
-
-      const updated =
-        current.map(
-          u =>
-            u.id === usuarioId
-              ? {
-                ...u,
-                rol:
-                  nuevoRol as
-                  'admin' |
-                  'usuario'
-              }
-              : u
-        );
-
-
-      localStorage.setItem(
-        STORAGE_KEYS.USUARIOS,
-        JSON.stringify(
-          updated
-        )
-      );
-
-
-      return {
-
-        success:
-          true,
-
-        mensaje:
-          'Rol actualizado'
-      };
+      const current = getStoredUsuarios();
+      const updated = current.map(u => u.id === usuarioId ? { ...u, rol: nuevoRol as 'admin' | 'usuario' } : u);
+      localStorage.setItem(STORAGE_KEYS.USUARIOS, JSON.stringify(updated));
+      return { success: true, mensaje: 'Rol actualizado' };
     }
 
-
-    const res =
-      await client.put(
-        `/api/admin/usuarios/${usuarioId}/rol?nuevo_rol=${encodeURIComponent(nuevoRol)}`
-      );
-
-
+    const res = await client.put(`/api/admin/usuarios/${usuarioId}/rol?nuevo_rol=${encodeURIComponent(nuevoRol)}`);
     return res.data;
   },
 
-
-  // ==========================================================
-  // 11. ACTIVAR / DESACTIVAR USUARIO
-  // ==========================================================
-
-  async updateUserStatus(
-    usuarioId: number,
-    activo: boolean
-  ): Promise<any> {
-
+  async updateUserStatus(usuarioId: number, activo: boolean): Promise<any> {
     if (isMockMode()) {
-
-      const current =
-        getStoredUsuarios();
-
-
-      const updated =
-        current.map(
-          u =>
-            u.id === usuarioId
-              ? {
-                ...u,
-                activo
-              }
-              : u
-        );
-
-
-      localStorage.setItem(
-        STORAGE_KEYS.USUARIOS,
-        JSON.stringify(
-          updated
-        )
-      );
-
-
-      return {
-
-        success:
-          true,
-
-        mensaje:
-          'Estado actualizado'
-      };
+      const current = getStoredUsuarios();
+      const updated = current.map(u => u.id === usuarioId ? { ...u, activo } : u);
+      localStorage.setItem(STORAGE_KEYS.USUARIOS, JSON.stringify(updated));
+      return { success: true, mensaje: 'Estado actualizado' };
     }
 
-
-    const res =
-      await client.put(
-        `/api/admin/usuarios/${usuarioId}/estado?activo=${activo}`
-      );
-
-
+    const res = await client.put(`/api/admin/usuarios/${usuarioId}/estado?activo=${activo}`);
     return res.data;
   },
 
-  async registrarRostro(
-    personaId: number,
-    imageBase64: string
-  ): Promise<{
-    message: string;
-    persona_id: number;
-    embedding_id: number;
-    modelo: string;
-    dimension: number;
-  }> {
-    // Convertir data:image/jpeg;base64,... a Blob
+  async registrarRostro(personaId: number, imageBase64: string): Promise<{ message: string; persona_id: number; embedding_id: number; modelo: string; dimension: number }> {
     const response = await fetch(imageBase64);
     const blob = await response.blob();
-
     const formData = new FormData();
 
-    formData.append(
-      'file',
-      blob,
-      'rostro.jpg'
-    );
+    formData.append('file', blob, 'rostro.jpg');
 
-
-    const res = await client.post(
-      `/api/personas/${personaId}/rostro`,
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
-    );
-
+    // Sin cabecera manual para permitir que Axios gestione el multipart boundary correctamente
+    const res = await client.post(`/api/personas/${personaId}/rostro`, formData);
     return res.data;
   },
-  async getCurrentUser() {
-    const res = await client.get<{
-      id: number;
-      nombre: string;
-      email: string;
-      rol: string;
-      activo: boolean;
-    }>('/api/auth/me');
 
+  async getCurrentUser() {
+    const res = await client.get<{ id: number; nombre: string; email: string; rol: string; activo: boolean }>('/api/auth/me');
     return res.data;
   },
 };
-
-
 
 
 
