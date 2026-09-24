@@ -8,7 +8,9 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str
 
-    CORS_ORIGINS: str = "http://localhost:5173"
+    # Valor por defecto blindado con producción y desarrollo local
+    CORS_ORIGINS: str = "https://sistemaanalisisnuevo-production-d66f.up.railway.app,http://localhost:5173"
+    
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str = "HS256"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
@@ -18,6 +20,5 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore"
     )
-
 
 settings = Settings()
