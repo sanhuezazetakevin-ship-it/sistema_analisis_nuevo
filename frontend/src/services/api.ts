@@ -21,7 +21,7 @@ import {
 // ============================================================
 
 function getDynamicApiBaseUrl(): string {
-  // Si se definió una variable de entorno en Vercel, forzar protocolo seguro HTTPS
+  // 1. Si se definió una variable de entorno, limpiar y forzar HTTPS obligatoriamente
   if (import.meta.env.VITE_API_BASE_URL) {
     let url = import.meta.env.VITE_API_BASE_URL.trim();
     if (url.startsWith('http://')) {
@@ -30,11 +30,11 @@ function getDynamicApiBaseUrl(): string {
     return url;
   }
 
-  // Detección automática según el hostname del navegador
+  // 2. Detección automática según el hostname del navegador
   if (typeof window !== 'undefined' && window.location) {
     const host = window.location.hostname;
     
-    // Entorno local de desarrollo
+    // Entorno local puro de desarrollo
     if (host === 'localhost' || host === '127.0.0.1') {
       return 'http://localhost:8000';
     }
@@ -46,7 +46,7 @@ function getDynamicApiBaseUrl(): string {
     }
   }
 
-  // PRODUCCIÓN (Vercel): Retorna de manera absoluta y segura el backend en Railway
+  // 3. PRODUCCIÓN (Vercel): Retorna de manera absoluta y segura el backend en Railway por HTTPS
   return 'https://sistemaanalisisnuevo-production-d66f.up.railway.app';
 }
 
@@ -57,7 +57,7 @@ function getDynamicApiBaseUrl(): string {
 
 const client = axios.create({
   baseURL: getDynamicApiBaseUrl(),
-  timeout: 10000,
+  timeout: 15000,
 });
 
 
@@ -72,7 +72,8 @@ client.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
-  }
+  },
+  (error) => Promise.reject(error)
 );
 
 
@@ -182,7 +183,7 @@ export const apiService = {
         nombre: data.nombre,
         email: data.email,
         activo: true,
-        foto_url: data.foto_base64 || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+        foto_url: data.foto_base64 || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 24 24" fill="none" stroke="%23739454" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
         created_at: new Date().toISOString(),
         total_embeddings: 1,
       };
