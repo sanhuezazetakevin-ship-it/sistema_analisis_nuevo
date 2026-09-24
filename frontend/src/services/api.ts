@@ -17,41 +17,26 @@ import {
 
 
 // ============================================================
-// CONFIGURACIÓN DINÁMICA DEL BACKEND (BLINDADA A HTTPS)
+// CONFIGURACIÓN DINÁMICA DEL BACKEND (URL FIJA Y SEGURA)
 // ============================================================
 
 function getDynamicApiBaseUrl(): string {
-  // Si defines la variable en Vercel, la toma y fuerza https si tuviera http por error
-  if (import.meta.env.VITE_API_BASE_URL) {
-    let url = import.meta.env.VITE_API_BASE_URL.trim();
-    if (url.startsWith('http://')) {
-      url = url.replace('http://', 'https://');
-    }
-    return url;
-  }
-
-  // Si está en producción, forzar siempre HTTPS hacia tu backend de Railway oficial
+  // Si estamos en entorno local (localhost o red local de desarrollo)
   if (typeof window !== 'undefined' && window.location) {
     const host = window.location.hostname;
-
-    if (host !== 'localhost' && host !== '127.0.0.1' && !host.includes('.devtunnels.ms')) {
-      return 'https://sistemaanalisisnuevo-production-d66f.up.railway.app';
+    
+    if (host === 'localhost' || host === '127.0.0.1') {
+      return 'http://localhost:8000';
     }
 
-    // Soporte para DevTunnels
     if (host.includes('.devtunnels.ms')) {
       const backendHost = host.replace(/-5173\b/, '-8000');
       return `https://${backendHost}`;
     }
-
-    // Soporte para red local segura
-    if (host !== 'localhost' && host !== '127.0.0.1') {
-      return `https://${host}:8000`;
-    }
   }
 
-  // Desarrollo local por defecto
-  return 'http://localhost:8000';
+  // EN PRODUCCIÓN (Vercel): Retorna de forma absoluta y sin excepciones tu backend seguro
+  return 'https://sistemaanalisisnuevo-production-d66f.up.railway.app';
 }
 
 
@@ -422,4 +407,3 @@ export const apiService = {
     return res.data;
   },
 };
-
