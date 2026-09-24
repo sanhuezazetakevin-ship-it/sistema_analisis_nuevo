@@ -371,7 +371,7 @@ export const apiService = {
     return res.data;
   },
 
-  async getUsuariosSystem(): Promise<UsuarioSystem[]> {
+  async getUsuariosSystem(): Promise<UsuarioSystem[]>{
     if (isMockMode()) {
       return getStoredUsuarios();
     }
@@ -407,7 +407,7 @@ export const apiService = {
     return res.data;
   },
 
- async registrarRostro(personaId: number, imageBase64: string): Promise<{ message: string; persona_id: number; embedding_id: number; modelo: string; dimension: number }> {
+  async registrarRostro(personaId: number, imageBase64: string): Promise<{ message: string; persona_id: number; embedding_id: number; modelo: string; dimension: number }> {
     const blob = await (await fetch(imageBase64)).blob();
     const formData = new FormData();
 
@@ -416,15 +416,10 @@ export const apiService = {
     const res = await client.post(`/api/personas/${personaId}/rostro`, formData);
     return res.data;
   },
+
   async getCurrentUser() {
     const res = await client.get<{ id: number; nombre: string; email: string; rol: string; activo: boolean }>('/api/auth/me');
     return res.data;
   },
 };
-
-function applyFetchIfProtocol(val: string) {
-  return val;
-}
-
-
 
